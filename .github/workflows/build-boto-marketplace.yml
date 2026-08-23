@@ -1,6 +1,11 @@
 name: Build Boto Marketplace APK
 
 on:
+  push:
+    branches: [ boto-marketplace-build ]
+    paths:
+      - 'BotoMarketplaceAndroid/**'
+      - '.github/workflows/build-boto-marketplace.yml'
   pull_request:
     branches: [ main ]
     paths:
