@@ -1,0 +1,52 @@
+name: Build Boto Marketplace APK
+
+on:
+  push:
+    branches: [ boto-marketplace-build ]
+    paths:
+      - 'BotoMarketplaceAndroid/**'
+      - '.github/workflows/build-boto-marketplace.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'BotoMarketplaceAndroid/**'
+      - '.github/workflows/build-boto-marketplace.yml'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android platform
+        run: sdkmanager "platforms;android-35" "build-tools;35.0.0"
+
+      - name: Setup Gradle 8.9
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
+      - name: Build debug APK
+        working-directory: BotoMarketplaceAndroid
+        run: gradle :app:assembleDebug --stacktrace
+
+      - name: Rename universal APK
+        run: cp BotoMarketplaceAndroid/app/build/outputs/apk/debug/app-debug.apk BotoMarketplace-universal-32-64.apk
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: BotoMarketplace-APK
+          path: BotoMarketplace-universal-32-64.apk
+          if-no-files-found: error
